@@ -2,7 +2,6 @@ import json
 import bcrypt
 import jwt_utils
 import my_settings
-import jwt_utils
 
 from django.http     import JsonResponse
 from django.views    import View
@@ -13,7 +12,7 @@ from employee.models import Employee
 class SignUpView(View):
 
     def post(self, request):
-         try:
+        try:
             data  = json.loads(request.body)
 
             if Employee.objects.filter(account=data['account']).exists():
@@ -33,7 +32,7 @@ class SignUpView(View):
            
             return JsonResponse({"message": "SIGNUP_SUCCESS"}, status=201)
 
-        except KeyError as e :
+        except KeyError as e:
             return JsonResponse({'message': f'KEY_ERROR:{e}'}, status=400)
 
         except ValueError as e:
