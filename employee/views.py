@@ -1,4 +1,13 @@
-from django.shortcuts import render
+import json
+import bcrypt
+import jwt_utils
+import my_settings
+import jwt_utils
+
+from django.http     import JsonResponse
+from django.views    import View
+
+from employee.models import Employee
 
 # Create your views here.
 class SignUpView(View):
