@@ -24,8 +24,8 @@ class SignUpView(View):
 
             # insert record
             Employee(
-                name = data['name'],
-                account = data['account'],
+                name     = data['name'],
+                account  = data['account'],
                 password = password_crypt,
                 is_admin = 0
             ).save()

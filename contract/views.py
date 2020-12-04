@@ -1,15 +1,33 @@
 import json
 import jwt_utils
 
-from django.views import View
-from django.http import JsonResponse
+from django.views   import View
+from django.http    import JsonResponse
 
-from contract.models import Category, Subcategory, Process, ProcessStatus, Contract
-from company.models import Group,Company,Representative
-from employee.models import Employee
+from contract.models    import Category, Subcategory, Process, ProcessStatus, Contract
+from company.models     import Group,Company,Representative
+from employee.models    import Employee
 
 # Create your views here.
-class ContractDetailView(View):
+class ContractPostView(View):
+    def get(self, request):
+        subcategory_list = [{'category_name':subcategory.category.name,'subcategory_id':subcategory.id, 'subcategory_name':subcategory.name} 
+                            for subcategory in Subcategory.objects.select_related('category').all()]
+        employee_list    = [{'id':employee.id, 'name':employee.name} 
+                            for employee in Employee.objects.all()]
+        company_list     = [{'group_name':company.group.name,'company_id':company.id, 'company_name':company.name, 
+                            'representatives':[{'id':repre.id,'name':repre.name} for repre in company.representative_set.all()]} 
+                            for company in Company.objects.select_related('group').prefetch_related('representative_set').all()]
+        status_list      = [{'process_name':status.process.process,'status_id':status.id, 'status_name':status.status} 
+                            for status in ProcessStatus.objects.select_related('process').all()]
+
+        return JsonResponse({
+            'subcategories' : subcategory_list,
+            'companies' : company_list,
+            'employees' : employee_list,
+            'statuses' : status_list
+        },status=200)
+
     #@jwt_utils.signin_decorator
     def post(self, request):
         try:
@@ -18,16 +36,13 @@ class ContractDetailView(View):
 
             data = json.loads(request.body)
 
-            target_status = ProcessStatus.objects.get(id = data['status'])
-            target_subcategory = Subcategory.objects.get(id=data['subcategory'])
-            target_company = Company.objects.get(id=data['company'])
-            target_representative = Representative.objects.get(id=data['representative'])
-
+            target_status           = ProcessStatus.objects.get(id = data['status'])
+            target_subcategory      = Subcategory.objects.get(id=data['subcategory'])
+            target_company          = Company.objects.get(id=data['company'])
+            target_representative   = Representative.objects.get(id=data['representative'])
 
             contract_field_list = [field.name for field in Contract._meta.get_fields()]
-
-            additional_infos = ['category_content','revenue','issue_date','memo']
-
+            additional_infos    = ['category_content','revenue','issue_date','memo']
             for index in range(0, len(additional_infos)):
                 if additional_infos[index] in data:
                     additional_infos[index] = data[additional_infos[index]]
@@ -35,20 +50,18 @@ class ContractDetailView(View):
                     additional_infos[index] = None
 
             new_contract = Contract(
-                status = target_status,
-                subcategory = target_subcategory,
-                company = target_company,
-                representative = target_representative,
-                employee = Employee.objects.get(id=employee_id),
+                status           = target_status,
+                subcategory      = target_subcategory,
+                company          = target_company,
+                representative   = target_representative,
+                employee         = Employee.objects.get(id=employee_id),
                 category_content = additional_infos[0],
-                revenue = additional_infos[1],
-                issue_date = additional_infos[2],
-                memo = additional_infos[3]
+                revenue          = additional_infos[1],
+                issue_date       = additional_infos[2],
+                memo             = additional_infos[3]
             )
-            
 
             new_contract.save()
-
 
             return JsonResponse(
                 {
@@ -76,6 +89,7 @@ class ContractDetailView(View):
             return JsonResponse({"message": f"VALUE_ERROR:{e}"}, status=400) 
 
     
+class ContractDetailView(View):
     def get(self, request, contract_id):
 
         target_contract = Contract.objects.get(id = contract_id)
@@ -96,7 +110,7 @@ class ContractDetailView(View):
                 "revenue": target_contract.revenue,
                 "issue_date": target_contract.issue_date,
                 "memo": target_contract.memo
-            }
+            }, status=200
         )
 
 
