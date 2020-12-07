@@ -10,9 +10,10 @@ from employee.models    import Employee
 
 # Create your views here.
 class ContractPostView(View):
+    #@jwt_utils.signin_decorator
     def get(self, request):
         
-        company_list     = [{'group_name':company.company_group.name if company.company_group != None else '기타','company_name':company.name, 
+        company_list = [{'group_name':company.company_group.name if company.company_group != None else '기타','company_name':company.name, 
                                 'representatives':[repre.name if repre!=[] else '' for repre in company.representative_set.all()]} 
                             for company in Company.objects.select_related('company_group').prefetch_related('representative_set').all()]
         
@@ -100,6 +101,7 @@ class ContractPostView(View):
 
     
 class ContractDetailView(View):
+    #@jwt_utils.signin_decorator
     def get(self, request, contract_id):
 
         contract_info = Contract.objects.select_related('company','representative','employee').prefetch_related('process','contractprocess_set','category').get(id = contract_id)
@@ -120,6 +122,7 @@ class ContractDetailView(View):
                 },status=200
             )
 
+    #@jwt_utils.signin_decorator
     def patch(self, request, contract_id):
         try:
             #employee_id = request.employee.id
@@ -193,8 +196,8 @@ class ContractDetailView(View):
         except ValueError as e:
             return JsonResponse({"message": f"VALUE_ERROR:{e}"}, status=400)
 
+    #@jwt_utils.signin_decorator
     def delete(self, request, contract_id):
-
         #employee_id = request.employee.id
         employee_id = 1
 
@@ -211,13 +214,13 @@ class ContractDetailView(View):
 
 
 class ContractListView(View):
-    
+    #@jwt_utils.signin_decorator
     def get(self, request):
         
         contracts = Contract.objects.select_related(
-            'company',
-            'company__company_group',
-            'representative'
+                'company',
+                'company__company_group',
+                'representative'
             ).prefetch_related(
                 'contractprocess_set',
                 'contractcategory_set'
