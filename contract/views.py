@@ -4,29 +4,28 @@ import jwt_utils
 from django.views   import View
 from django.http    import JsonResponse
 
-from contract.models    import Category, Subcategory, Process, ProcessStatus, Contract
-from company.models     import Group,Company,Representative
+from contract.models    import Process, Contract, ContractProcess, Category, ContractCategory
+from company.models     import CompanyGroup,Company,Representative
 from employee.models    import Employee
 
 # Create your views here.
 class ContractPostView(View):
     def get(self, request):
-        subcategory_list = [{'category_name':subcategory.category.name,'subcategory_id':subcategory.id, 'subcategory_name':subcategory.name} 
-                            for subcategory in Subcategory.objects.select_related('category').all()]
-        employee_list    = [{'id':employee.id, 'name':employee.name} 
-                            for employee in Employee.objects.all()]
-        company_list     = [{'group_name':company.group.name,'company_id':company.id, 'company_name':company.name, 
-                            'representatives':[{'id':repre.id,'name':repre.name} for repre in company.representative_set.all()]} 
-                            for company in Company.objects.select_related('group').prefetch_related('representative_set').all()]
-        status_list      = [{'process_name':status.process.process,'status_id':status.id, 'status_name':status.status} 
-                            for status in ProcessStatus.objects.select_related('process').all()]
+        
+        company_list     = [{'group_name':company.company_group.name if company.company_group != None else '기타','company_name':company.name, 
+                                'representatives':[repre.name if repre!=[] else '' for repre in company.representative_set.all()]} 
+                            for company in Company.objects.select_related('company_group').prefetch_related('representative_set').all()]
+        
+        category_list = [{'category':'검사', 'subcategory':['온라인','오프라인'],'category_content':['인성','적성','인적성']},
+                        {'category':'교육', 'subcategory':['온라인','오프라인'],'category_content':['면접위원 교육', '감독관 교육']},
+                        {'category':'운영', 'subcategory':['온라인','오프라인'],'category_content':['검사','교육']},
+                        {'category':'개발', 'subcategory':['선발 Tool', '프로그램'],'category_content':False},
+                        {'category':'기타', 'subcategory':False,'category_content':False}]
 
         return JsonResponse({
-            'subcategories' : subcategory_list,
             'companies' : company_list,
-            'employees' : employee_list,
-            'statuses' : status_list
-        },status=200)
+            'categories' : category_list
+            },status=200)
 
     #@jwt_utils.signin_decorator
     def post(self, request):
@@ -36,50 +35,61 @@ class ContractPostView(View):
 
             data = json.loads(request.body)
 
-            target_status           = ProcessStatus.objects.get(id = data['status'])
-            target_subcategory      = Subcategory.objects.get(id=data['subcategory'])
-            target_company          = Company.objects.get(id=data['company'])
-            target_representative   = Representative.objects.get(id=data['representative'])
 
-            contract_field_list = [field.name for field in Contract._meta.get_fields()]
-            additional_infos    = ['category_content','revenue','issue_date','memo']
-            for index in range(0, len(additional_infos)):
-                if additional_infos[index] in data:
-                    additional_infos[index] = data[additional_infos[index]]
-                else:
-                    additional_infos[index] = None
+            target_company, create = Company.objects.get_or_create(name=data['company'], company_group_id=CompanyGroup.objects.get(name=data['group']).id)
+            target_representative, create = Representative.objects.get_or_create(
+                name=data['representative']['name'],phone_num=data['representative']['mobile'],email=data['representative']['email'],company_id=target_company.id)
+
+            if 'memo' in data:
+                target_memo = data['memo']
+            else:
+                target_memo = None
 
             new_contract = Contract(
-                status           = target_status,
-                subcategory      = target_subcategory,
                 company          = target_company,
                 representative   = target_representative,
                 employee         = Employee.objects.get(id=employee_id),
-                category_content = additional_infos[0],
-                revenue          = additional_infos[1],
-                issue_date       = additional_infos[2],
-                memo             = additional_infos[3]
-            )
+                memo             = target_memo,
+                )
 
             new_contract.save()
 
+            for category in data['categories']:
+                target_category, flag = Category.objects.get_or_create(category = category['category'], subcategory = category['subcategory'], category_content = category['category_content'])
+
+                ContractCategory(
+                    target_contract = new_contract,
+                    category = target_category
+                ).save()
+            
+            for process in data['processes']:
+                print(process['title'])
+                print(process['status'])
+                ContractProcess(
+                    target_contract = new_contract,
+                    process = Process.objects.get(title = process['title'], status=process['status']),
+                    revenue = process['income']/1.1,
+                    vat = process['income']/11,
+                    issue_date = process['issue_date']
+                ).save()
+
+            contract_info = Contract.objects.select_related('company','representative','employee').prefetch_related('process','contractprocess_set','category').get(id = new_contract.id)
+
+
             return JsonResponse(
                 {
-                    "process": new_contract.status.process.process,
-                    "status": new_contract.status.status,
-                    "category":new_contract.subcategory.category.name,
-                    "subcategory": new_contract.subcategory.name,
-                    "category_content": new_contract.category_content,
-                    "group": new_contract.company.group.name,
-                    "company": new_contract.company.name,
-                    "representative": new_contract.representative.name,
-                    "representative_phone": new_contract.representative.phone_num,
-                    "representative_email": new_contract.representative.email,
-                    "employee": new_contract.employee.name,
-                    "revenue": new_contract.revenue,
-                    "issue_date": new_contract.issue_date,
-                    "memo": new_contract.memo
-                }, status=201
+                    "employee":contract_info.employee.name,
+                    "group":contract_info.company.company_group.name,
+                    "company":contract_info.company.name,
+                    "representative_info":{'name':contract_info.representative.name,'mobile':contract_info.representative.phone_num,'email':contract_info.representative.email},
+                    "process":[{'title':Process.objects.get(id = proc['process_id']).title,
+                                "status":Process.objects.get(id = proc['process_id']).status,
+                                "revenue":proc['revenue'],
+                                "vat":proc['vat'],
+                                "issue_date":proc['issue_date']} for proc in contract_info.contractprocess_set.all().values()],
+                    "category_list":[{'category':gory.category.category,'subcategory':gory.category.subcategory,'category_content':gory.category.category_content} for gory in contract_info.contractcategory_set.all()],
+                    "memo":contract_info.memo
+                },status=201
             )
         
         except KeyError as e :
@@ -92,26 +102,112 @@ class ContractPostView(View):
 class ContractDetailView(View):
     def get(self, request, contract_id):
 
-        target_contract = Contract.objects.get(id = contract_id)
+        contract_info = Contract.objects.select_related('company','representative','employee').prefetch_related('process','contractprocess_set','category').get(id = contract_id)
 
         return JsonResponse(
-            {
-                "process": target_contract.status.process.process,
-                "status": target_contract.status.status,
-                "category":target_contract.subcategory.category.name,
-                "subcategory": target_contract.subcategory.name,
-                "category_content": target_contract.category_content,
-                "group": target_contract.company.group.name,
-                "company": target_contract.company.name,
-                "representative": target_contract.representative.name,
-                "representative_phone": target_contract.representative.phone_num,
-                "representative_email": target_contract.representative.email,
-                "employee": target_contract.employee.name,
-                "revenue": target_contract.revenue,
-                "issue_date": target_contract.issue_date,
-                "memo": target_contract.memo
-            }, status=200
-        )
+                {
+                    "employee":contract_info.employee.name,
+                    "group":contract_info.company.company_group.name,
+                    "company":contract_info.company.name,
+                    "representative_info":{'name':contract_info.representative.name,'mobile':contract_info.representative.phone_num,'email':contract_info.representative.email},
+                    "process":[{'title':Process.objects.get(id = proc['process_id']).title,
+                                "status":Process.objects.get(id = proc['process_id']).status,
+                                "revenue":proc['revenue'],
+                                "vat":proc['vat'],
+                                "issue_date":proc['issue_date']} for proc in contract_info.contractprocess_set.all().values()],
+                    "category_list":[{'category':gory.category.category,'subcategory':gory.category.subcategory,'category_content':gory.category.category_content} for gory in contract_info.contractcategory_set.all()],
+                    "memo":contract_info.memo
+                },status=200
+            )
+
+    def patch(self, request, contract_id):
+        try:
+            #employee_id = request.employee.id
+            employee_id = 1
+
+            data = json.loads(request.body)
+            target_contract = Contract.objects.prefetch_related('process','contractprocess_set','category').get(id=contract_id)
+
+
+            if 'company' in data and 'group' in data:
+                target_company, create = Company.objects.get_or_create(name=data['company'], company_group_id=CompanyGroup.objects.get(name=data['group']).id)
+                target_contract.company = target_company
+
+            if 'representative' in data:
+                target_representative, create = Representative.objects.get_or_create(
+                    name=data['representative']['name'],phone_num=data['representative']['mobile'],email=data['representative']['email'],company_id=target_company.id)
+                target_contract.representative = target_representative
+
+            if 'memo' in data:
+                target_contract.memo = data['memo']
+            else:
+                target_contract.memo = None
+
+            target_contract.save()
+
+            if 'categories' in data:
+                ContractCategory.objects.filter(target_contract_id = contract_id).delete()
+                for category in data['categories']:
+                    target_category, flag = Category.objects.get_or_create(category = category['category'], subcategory = category['subcategory'], category_content = category['category_content'])
+
+
+                    ContractCategory(
+                        target_contract = target_contract,
+                        category = target_category
+                    ).save()
+
+            if 'processes' in data:
+                print(target_contract.process.all())
+                ContractProcess.objects.filter(target_contract_id = contract_id).delete()
+                for process in data['processes']:
+                    ContractProcess(
+                        target_contract = target_contract,
+                        process = Process.objects.get(title = process['title'], status=process['status']),
+                        revenue = process['income']/1.1,
+                        vat = process['income']/11,
+                        issue_date = process['issue_date']
+                    ).save()
+           
+            contract_info = Contract.objects.select_related('company','representative','employee').prefetch_related('contractcategory_set','contractprocess_set').get(id = target_contract.id)
+
+           
+            return JsonResponse(
+                {
+                    "employee":contract_info.employee.name,
+                    "group":contract_info.company.company_group.name,
+                    "company":contract_info.company.name,
+                    "representative_info":{'name':contract_info.representative.name,'mobile':contract_info.representative.phone_num,'email':contract_info.representative.email},
+                    "process":[{'title':Process.objects.get(id = proc['process_id']).title,
+                                "status":Process.objects.get(id = proc['process_id']).status,
+                                "revenue":proc['revenue'],
+                                "vat":proc['vat'],
+                                "issue_date":proc['issue_date']} for proc in contract_info.contractprocess_set.all().values()],
+                    "category_list":[{'category':gory.category.category,'subcategory':gory.category.subcategory,'category_content':gory.category.category_content} for gory in contract_info.contractcategory_set.all()],
+                    "memo":contract_info.memo
+                },status=201
+            )
+        
+        except KeyError as e :
+            return JsonResponse({'MESSAGE': f'KEY_ERROR:{e}'}, status=400)
+        
+        except ValueError as e:
+            return JsonResponse({"message": f"VALUE_ERROR:{e}"}, status=400)
+
+    def delete(self, request, contract_id):
+
+        #employee_id = request.employee.id
+        employee_id = 1
+
+        target_contract = Contract.objects.prefetch_related('process','contractprocess_set','category').get(id=contract_id)
+        if target_contract.employee.id != employee_id and Employee.objects.get(id=employee_id).is_admin != 1:
+            return JsonResponse({'message':'ACCESS_DENIED'},status=403)
+
+        target_contract.contractprocess_set.all().delete()
+        target_contract.contractcategory_set.all().delete()
+        target_contract.delete()
+
+        return JsonResponse({'message':'삭제완료!'},status=200)
+
 
 
 class ContractListView(View):
@@ -119,30 +215,28 @@ class ContractListView(View):
     def get(self, request):
         
         contracts = Contract.objects.select_related(
-            'status__process',
-            'status',
             'company',
-            'company__group',
-            'subcategory',
-            'subcategory__category',
-            'employee',
+            'company__company_group',
             'representative'
+            ).prefetch_related(
+                'contractprocess_set',
+                'contractcategory_set'
             ).all()
 
         return JsonResponse(
             {"contracts":[
                 {
                 "no":contract.id,
-                "status":contract.status.status,
-                "group":contract.company.group.name,
-                "company":contract.company.name,
-                "category":contract.subcategory.category.name,
-                "subcategory":contract.subcategory.name,
-                "subcategory_content":contract.category_content,
                 "employee":contract.employee.name,
-                "representative":contract.representative.name,
-                "issue_date":contract.issue_date,
-                "revenue":contract.revenue,
+                "group":contract.company.company_group.name,
+                "company":contract.company.name,
+                "representative_info":{'name':contract.representative.name,'mobile':contract.representative.phone_num,'email':contract.representative.email},
+                "process":[{'title':Process.objects.get(id = proc['process_id']).title,
+                            "status":Process.objects.get(id = proc['process_id']).status,
+                            "revenue":proc['revenue'],
+                            "vat":proc['vat'],
+                            "issue_date":proc['issue_date']} for proc in contract.contractprocess_set.all().values()],
+                "category_list":[{'category':gory.category.category,'subcategory':gory.category.subcategory,'category_content':gory.category.category_content} for gory in contract.contractcategory_set.all()],
                 "memo":contract.memo
                 } for contract in contracts
             ]},status=200

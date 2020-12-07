@@ -275,3 +275,12 @@ tags
 # End of https://www.toptal.com/developers/gitignore/api/vscode,sublimetext,vim,django,python
 
 my_settings.py
+csv_files/
+*_csv.py
+HEAD.lock
+debug.log
+description
+*.sqlite3
+/refs
+/info
+/hooks

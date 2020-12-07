@@ -2,6 +2,7 @@ import json
 import bcrypt
 import jwt_utils
 import my_settings
+import jwt
 
 from django.http     import JsonResponse
 from django.views    import View
@@ -48,13 +49,13 @@ class SignInView(View):
             employee = Employee.objects.get(account = data['account'])
 
             if bcrypt.checkpw(data['password'].encode('UTF-8'), employee.password.encode('UTF-8')):
-                key       = my_settings.SECRET.get('SECRET_KEY')
+                key       = my_settings.SECRET.get('secret')
                 algorithm = my_settings.SECRET.get('JWT_ALGORITHM')
                 token     = jwt.encode({'employee' : employee.id},key, algorithm = algorithm).decode('UTF-8')
-                return JsonResponse({"token": token, "message": "SIGNIN_SUCCESS", "name" : employee.name}, status=200)
+                return JsonResponse({"token": token, "message": "따봉", "name" : employee.name}, status=200)
 
             else:
-                return JsonResponse({"message":"INVALID_PASSWORD"}, status=401)
+                return JsonResponse({"message":"비번틀림"}, status=401)
 
         except KeyError as e :
             return JsonResponse({'message': f'KEY_ERROR:{e}'}, status=400)
@@ -63,4 +64,4 @@ class SignInView(View):
             return JsonResponse({"message": f"VALUE_ERROR:{e}"}, status=400)
 
         except Employee.DoesNotExist:
-            return JsonResponse({"message": "INVALID_USER"}, status=401)
+            return JsonResponse({"message": "없는사람"}, status=401)

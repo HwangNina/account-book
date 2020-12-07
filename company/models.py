@@ -1,18 +1,18 @@
 from django.db import models
 
 # Create your models here.
-class Group(models.Model):
+class CompanyGroup(models.Model):
     name = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
     class Meta():
-        db_table = "groups"
+        db_table = "company_groups"
 
 
 class Company(models.Model):
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, null=True)
+    company_group = models.ForeignKey(CompanyGroup, on_delete=models.CASCADE, null=True)
     name  = models.CharField(max_length=50)
 
     def __str__(self):
