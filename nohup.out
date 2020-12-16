@@ -1,0 +1,85 @@
+[2020-12-16 06:38:11 +0000] [17104] [INFO] Starting gunicorn 20.0.4
+[2020-12-16 06:38:11 +0000] [17104] [INFO] Listening at: http://0.0.0.0:8000 (17104)
+[2020-12-16 06:38:11 +0000] [17104] [INFO] Using worker: sync
+[2020-12-16 06:38:11 +0000] [17106] [INFO] Booting worker with pid: 17106
+[2020-12-16 06:38:11 +0000] [17106] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/arbiter.py", line 583, in spawn_worker
+    worker.init_process()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/workers/base.py", line 119, in init_process
+    self.load_wsgi()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/workers/base.py", line 144, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/app/wsgiapp.py", line 49, in load
+    return self.load_wsgiapp()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/app/wsgiapp.py", line 39, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/util.py", line 358, in import_app
+    mod = importlib.import_module(module)
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 961, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 973, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'accountbook'
+[2020-12-16 06:38:11 +0000] [17106] [INFO] Worker exiting (pid: 17106)
+[2020-12-16 06:38:11 +0000] [17104] [INFO] Shutting down: Master
+[2020-12-16 06:38:11 +0000] [17104] [INFO] Reason: Worker failed to boot.
+[2020-12-16 06:38:26 +0000] [17108] [INFO] Starting gunicorn 20.0.4
+[2020-12-16 06:38:26 +0000] [17108] [INFO] Listening at: http://0.0.0.0:8000 (17108)
+[2020-12-16 06:38:26 +0000] [17108] [INFO] Using worker: sync
+[2020-12-16 06:38:26 +0000] [17110] [INFO] Booting worker with pid: 17110
+[2020-12-16 06:38:26 +0000] [17110] [ERROR] Exception in worker process
+Traceback (most recent call last):
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/arbiter.py", line 583, in spawn_worker
+    worker.init_process()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/workers/base.py", line 119, in init_process
+    self.load_wsgi()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/workers/base.py", line 144, in load_wsgi
+    self.wsgi = self.app.wsgi()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/app/base.py", line 67, in wsgi
+    self.callable = self.load()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/app/wsgiapp.py", line 49, in load
+    return self.load_wsgiapp()
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/app/wsgiapp.py", line 39, in load_wsgiapp
+    return util.import_app(self.app_uri)
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/site-packages/gunicorn/util.py", line 358, in import_app
+    mod = importlib.import_module(module)
+  File "/home/ec2-user/miniconda3/envs/accountbook/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 961, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 973, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'accountbook'
+[2020-12-16 06:38:26 +0000] [17110] [INFO] Worker exiting (pid: 17110)
+[2020-12-16 06:38:26 +0000] [17108] [INFO] Shutting down: Master
+[2020-12-16 06:38:26 +0000] [17108] [INFO] Reason: Worker failed to boot.
+[2020-12-16 06:39:49 +0000] [17112] [INFO] Starting gunicorn 20.0.4
+[2020-12-16 06:39:49 +0000] [17112] [INFO] Listening at: http://0.0.0.0:8000 (17112)
+[2020-12-16 06:39:49 +0000] [17112] [INFO] Using worker: sync
+[2020-12-16 06:39:49 +0000] [17114] [INFO] Booting worker with pid: 17114
+2020-12-16 06:40:59,208 DEBUG (0.002) SELECT @@SQL_AUTO_IS_NULL; args=None
+2020-12-16 06:40:59,210 DEBUG (0.001) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None
+2020-12-16 06:40:59,212 DEBUG (0.002) SELECT `companies`.`id`, `companies`.`company_group_id`, `companies`.`name`, `company_groups`.`id`, `company_groups`.`name` FROM `companies` LEFT OUTER JOIN `company_groups` ON (`companies`.`company_group_id` = `company_groups`.`id`); args=()
+2020-12-16 06:40:59,215 DEBUG (0.002) SELECT `representatives`.`id`, `representatives`.`company_id`, `representatives`.`name`, `representatives`.`phone_num`, `representatives`.`email` FROM `representatives` WHERE `representatives`.`company_id` IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23); args=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)
+[2020-12-16 06:45:59 +0000] [17112] [INFO] Handling signal: term
+[2020-12-16 06:45:59 +0000] [17114] [INFO] Worker exiting (pid: 17114)
+[2020-12-16 06:45:59 +0000] [17112] [INFO] Shutting down: Master
+[2020-12-16 08:06:20 +0000] [18431] [INFO] Starting gunicorn 20.0.4
+[2020-12-16 08:06:20 +0000] [18431] [INFO] Listening at: http://0.0.0.0:8000 (18431)
+[2020-12-16 08:06:20 +0000] [18431] [INFO] Using worker: sync
+[2020-12-16 08:06:20 +0000] [18433] [INFO] Booting worker with pid: 18433
+2020-12-16 08:06:36,938 DEBUG (0.002) SELECT @@SQL_AUTO_IS_NULL; args=None
+2020-12-16 08:06:36,939 DEBUG (0.001) SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED; args=None
+2020-12-16 08:06:36,941 DEBUG (0.001) SELECT `companies`.`id`, `companies`.`company_group_id`, `companies`.`name`, `company_groups`.`id`, `company_groups`.`name` FROM `companies` LEFT OUTER JOIN `company_groups` ON (`companies`.`company_group_id` = `company_groups`.`id`); args=()
+2020-12-16 08:06:36,944 DEBUG (0.002) SELECT `representatives`.`id`, `representatives`.`company_id`, `representatives`.`name`, `representatives`.`phone_num`, `representatives`.`email` FROM `representatives` WHERE `representatives`.`company_id` IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23); args=(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23)
